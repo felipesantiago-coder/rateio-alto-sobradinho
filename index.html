@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Comissões e Premiações - Quadraimob</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #007bff;
+            --background-color: #f4f7f6;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --dark-blue: #1c7ed6;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            max-width: 220px;
+            height: auto;
+        }
+
+        h1 {
+            color: var(--dark-blue);
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 15px;
+        }
+
+        .card {
+            background-color: var(--container-bg);
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--dark-blue);
+            border-bottom: 2px solid var(--background-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item label {
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-item input[type="radio"] {
+            cursor: pointer;
+        }
+        
+        .volta-ao-caixa-group {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+
+        #voltaAoCaixaValueContainer {
+            margin-top: 15px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--primary-color);
+        }
+
+        #resultsContainer {
+            display: none; /* Initially hidden */
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .beneficiary-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .beneficiary-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            color: var(--dark-blue);
+            font-weight: 700;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .detail-item span:last-child {
+            font-weight: 500;
+        }
+
+        .beneficiary-total {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .card-summary {
+            background-color: #f0f7ff;
+            border: 1px solid #bde0fe;
+        }
+
+        .card-summary h3 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .summary-item.total-geral {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="header">
+            <img src="https://z-cdn-media.chatglm.cn/files/f95a02de-ad51-4f3e-872d-281ee5f1bbc6.png?auth_key=1865905587-56f22273520343b3983f6ed8db091ebd-0-1568bdcedc8696933cd56a78649c6433" alt="Logo Quadraimob" class="logo">
+            <h1>Calculadora de Comissões e Premiações</h1>
+        </div>
+
+        <div class="card card-input">
+            <h2>Dados da Venda</h2>
+            <form id="calculatorForm">
+                <div class="form-group">
+                    <label>Empreendimento</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <label for="empreendimento1">
+                                <input type="radio" id="empreendimento1" name="empreendimento" value="Alto do Horizonte" checked>
+                                Alto do Horizonte
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <label for="empreendimento2">
+                                <input type="radio" id="empreendimento2" name="empreendimento" value="Alto da Alvorada">
+                                Alto da Alvorada
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="formaAquisicao">Forma de Aquisição</label>
+                    <select id="formaAquisicao" name="formaAquisicao">
+                        <option value="avista">À Vista</option>
+                        <option value="investidor">Tabela Investidor</option>
+                        <option value="associativo">Associativo</option>
+                        <option value="direta">Tabela Direta</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="valorFinal">Valor Final do Imóvel (R$)</label>
+                    <input type="text" id="valorFinal" name="valorFinal" placeholder="R$ 0,00" required>
+                </div>
+
+                <div class="form-group volta-ao-caixa-group">
+                    <label>Houve aplicação do desconto "Volta ao Caixa"?</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <label for="voltaAoCaixaSim">
+                                <input type="radio" id="voltaAoCaixaSim" name="voltaAoCaixa" value="sim">
+                                Sim
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <label for="voltaAoCaixaNao">
+                                <input type="radio" id="voltaAoCaixaNao" name="voltaAoCaixa" value="nao" checked>
+                                Não
+                            </label>
+                        </div>
+                    </div>
+                    <div id="voltaAoCaixaValueContainer" style="display: none;">
+                        <label for="valorVoltaAoCaixa">Valor do Desconto (R$)</label>
+                        <input type="text" id="valorVoltaAoCaixa" name="valorVoltaAoCaixa" placeholder="R$ 0,00">
+                    </div>
+                </div>
+
+                <button type="button" onclick="calcular()">Calcular Rateio</button>
+            </form>
+        </div>
+
+        <div id="resultsContainer">
+            <h2 style="text-align: center; margin-bottom: 30px;">Resultado do Rateio</h2>
+            
+            <div class="results-grid" id="resultsGrid">
+                <!-- Cards de resultados serão inseridos aqui pelo JavaScript -->
+            </div>
+
+            <div class="card card-summary">
+                <h3>Resumo Geral</h3>
+                <div class="summary-item">
+                    <span>Total de Comissões:</span>
+                    <span id="totalComissao">R$ 0,00</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total de Prêmio Padrão:</span>
+                    <span id="totalPremioPadrao">R$ 0,00</span>
+                </div>
+                <div class="summary-item">
+                    <span>Total de Prêmio Extra (VAC):</span>
+                    <span id="totalPremioExtra">R$ 0,00</span>
+                </div>
+                <div class="summary-item total-geral">
+                    <span>Total a Distribuir:</span>
+                    <span id="totalGeral">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const voltaAoCaixaRadios = document.querySelectorAll('input[name="voltaAoCaixa"]');
+            const voltaAoCaixaValueContainer = document.getElementById('voltaAoCaixaValueContainer');
+
+            voltaAoCaixaRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'sim') {
+                        voltaAoCaixaValueContainer.style.display = 'block';
+                    } else {
+                        voltaAoCaixaValueContainer.style.display = 'none';
+                    }
+                });
+            });
+
+            const moedaInputs = document.querySelectorAll('input[type="text"][id^="valor"]');
+            moedaInputs.forEach(input => {
+                input.addEventListener('input', () => formatarMoedaInputHandler(input));
+            });
+        });
+
+        function formatarMoedaInputHandler(input) {
+            let valorNumerico = input.value.replace(/\D/g, '');
+            if (valorNumerico.length === 0) {
+                input.value = '';
+                return;
+            }
+            valorNumerico = parseInt(valorNumerico, 10) / 100;
+            const formatter = new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 2,
+            });
+            input.value = formatter.format(valorNumerico);
+        }
+
+        // VERSÃO CORRIGIDA E MAIS ROBUSTA DA FUNÇÃO DE PARSING
+        function parseMoedaInput(valorFormatado) {
+            if (!valorFormatado) return 0;
+            // Remove tudo que não for dígito ou vírgula, depois troca a vírgula por ponto.
+            const numeroString = valorFormatado.replace(/[^\d,]/g, '').replace(',', '.');
+            const numero = parseFloat(numeroString);
+            return isNaN(numero) ? 0 : numero;
+        }
+
+        function calcular() {
+            const empreendimento = document.querySelector('input[name="empreendimento"]:checked').value;
+            const formaAquisicao = document.getElementById('formaAquisicao').value;
+            const valorFinal = parseMoedaInput(document.getElementById('valorFinal').value);
+            const temVoltaAoCaixa = document.querySelector('input[name="voltaAoCaixa"]:checked').value === 'sim';
+
+            if (valorFinal <= 0) {
+                alert("Por favor, insira um valor final válido para o imóvel.");
+                return;
+            }
+
+            let valorVoltaAoCaixa = 0;
+            if (temVoltaAoCaixa) {
+                valorVoltaAoCaixa = parseMoedaInput(document.getElementById('valorVoltaAoCaixa').value);
+                if (valorVoltaAoCaixa < 0) {
+                    alert("Por favor, insira um valor válido para o desconto 'Volta ao Caixa'.");
+                    return;
+                }
+            }
+            
+            const comissoes = {
+                'Quadraimob Soluções Imobiliários LTDA': 0.0224,
+                'Diretor Comercial': 0.0013,
+                'Corretor': 0.0156,
+                'Gerente': 0.0057,
+                'Coordenador de Produto': 0.0050
+            };
+
+            const premioPadraoPercentual = {
+                'avista': 0.00969545,
+                'investidor': 0.00969545,
+                'associativo': 0.005150003,
+                'direta': 0
+            };
+
+            const premioDistribuicao = {
+                'Corretor': 0.80,
+                'Gerente': 0.10,
+                'Coordenador de Produto': 0.10
+            };
+
+            const limiteVoltaAoCaixa = {
+                'Alto do Horizonte': 5000.00,
+                'Alto da Alvorada': 30000.00
+            };
+            
+            const beneficiarios = Object.keys(comissoes);
+            let resultados = {};
+            beneficiarios.forEach(beneficiario => {
+                resultados[beneficiario] = { comissao: 0, premioPadrao: 0, premioExtra: 0 };
+            });
+
+            for (const beneficiario in comissoes) {
+                resultados[beneficiario].comissao = valorFinal * comissoes[beneficiario];
+            }
+
+            const premioTotalPercentual = premioPadraoPercentual[formaAquisicao];
+            const premioTotalValor = valorFinal * premioTotalPercentual;
+            
+            for (const beneficiario in premioDistribuicao) {
+                if (resultados[beneficiario]) {
+                    resultados[beneficiario].premioPadrao = premioTotalValor * premioDistribuicao[beneficiario];
+                }
+            }
+
+            if (temVoltaAoCaixa) {
+                const limiteMax = limiteVoltaAoCaixa[empreendimento];
+                if (valorVoltaAoCaixa < limiteMax) {
+                    const diferenca = limiteMax - valorVoltaAoCaixa;
+                    const premioExtraTotal = diferenca / 2;
+                    for (const beneficiario in premioDistribuicao) {
+                        if (resultados[beneficiario]) {
+                            resultados[beneficiario].premioExtra = premioExtraTotal * premioDistribuicao[beneficiario];
+                        }
+                    }
+                }
+            }
+            
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = '';
+
+            let totais = { comissao: 0, premioPadrao: 0, premioExtra: 0 };
+
+            for (const beneficiario of beneficiarios) {
+                const resultado = resultados[beneficiario];
+                const totalReceber = resultado.comissao + resultado.premioPadrao + resultado.premioExtra;
+                
+                const card = document.createElement('div');
+                card.className = 'beneficiary-card';
+                card.innerHTML = `
+                    <h4>${beneficiario}</h4>
+                    <div class="detail-item">
+                        <span>Comissão:</span>
+                        <span>${formatarMoeda(resultado.comissao)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Prêmio Padrão:</span>
+                        <span>${formatarMoeda(resultado.premioPadrao)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Prêmio Extra (VAC):</span>
+                        <span>${formatarMoeda(resultado.premioExtra)}</span>
+                    </div>
+                    <div class="beneficiary-total">
+                        <span>Total a Receber:</span>
+                        <span>${formatarMoeda(totalReceber)}</span>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+                
+                totais.comissao += resultado.comissao;
+                totais.premioPadrao += resultado.premioPadrao;
+                totais.premioExtra += resultado.premioExtra;
+            }
+            
+            document.getElementById('totalComissao').textContent = formatarMoeda(totais.comissao);
+            document.getElementById('totalPremioPadrao').textContent = formatarMoeda(totais.premioPadrao);
+            document.getElementById('totalPremioExtra').textContent = formatarMoeda(totais.premioExtra);
+            document.getElementById('totalGeral').textContent = formatarMoeda(totais.comissao + totais.premioPadrao + totais.premioExtra);
+
+            document.getElementById('resultsContainer').style.display = 'block';
+        }
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        }
+    </script>
+</body>
+</html>
