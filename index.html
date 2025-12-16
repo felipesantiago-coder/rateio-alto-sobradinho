@@ -136,7 +136,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: background-color 0.3s ease, color 0.3s ease;
-            flex-grow: 1; /* Faz os botões crescerem para preencher o espaço */
+            flex-grow: 1;
         }
 
         .btn-calcular {
@@ -160,7 +160,7 @@
         }
 
         #resultsContainer {
-            display: none; /* Initially hidden */
+            display: none;
         }
 
         .results-grid {
@@ -274,7 +274,6 @@
 
                 <div class="form-group">
                     <label for="valorFinal">Valor Final do Imóvel (R$)</label>
-                    <!-- ATRIBUTO inputmode ADICIONADO AQUI -->
                     <input type="text" id="valorFinal" name="valorFinal" placeholder="R$ 0,00" inputmode="decimal" required>
                 </div>
 
@@ -296,7 +295,6 @@
                     </div>
                     <div id="voltaAoCaixaValueContainer" style="display: none;">
                         <label for="valorVoltaAoCaixa">Valor do Desconto (R$)</label>
-                        <!-- ATRIBUTO inputmode ADICIONADO AQUI -->
                         <input type="text" id="valorVoltaAoCaixa" name="valorVoltaAoCaixa" placeholder="R$ 0,00" inputmode="decimal">
                     </div>
                 </div>
@@ -373,10 +371,16 @@
             input.value = formatter.format(valorNumerico);
         }
 
+        // VERSÃO REVISADA E MAIS ROBUSTA DA FUNÇÃO DE PARSING
         function parseMoedaInput(valorFormatado) {
             if (!valorFormatado) return 0;
-            const numeroString = valorFormatado.replace(/[^\d,]/g, '').replace(',', '.');
-            const numero = parseFloat(numeroString);
+            // 1. Remove qualquer caractere que não seja dígito, vírgula ou ponto.
+            let numeroLimpo = valorFormatado.replace(/[^\d.,]/g, '');
+            // 2. Remove todos os pontos (separadores de milhar).
+            numeroLimpo = numeroLimpo.replace(/\./g, '');
+            // 3. Substitui a vírgula (separador decimal) por ponto.
+            numeroLimpo = numeroLimpo.replace(',', '.');
+            const numero = parseFloat(numeroLimpo);
             return isNaN(numero) ? 0 : numero;
         }
 
