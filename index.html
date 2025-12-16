@@ -121,22 +121,42 @@
             margin-top: 15px;
         }
 
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
         button {
             display: block;
-            width: 100%;
             padding: 15px;
-            background-color: var(--secondary-color);
-            color: white;
             border: none;
             border-radius: 5px;
             font-size: 18px;
             font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            flex-grow: 1; /* Faz os botões crescerem para preencher o espaço */
         }
 
-        button:hover {
+        .btn-calcular {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-calcular:hover {
             background-color: var(--primary-color);
+        }
+
+        .btn-limpar {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-limpar:hover {
+            background-color: var(--primary-color);
+            color: white;
         }
 
         #resultsContainer {
@@ -279,7 +299,10 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="calcular()">Calcular Rateio</button>
+                <div class="button-group">
+                    <button type="button" class="btn-limpar" onclick="limparFormulario()">Limpar Campos</button>
+                    <button type="button" class="btn-calcular" onclick="calcular()">Calcular Rateio</button>
+                </div>
             </form>
         </div>
 
@@ -348,13 +371,18 @@
             input.value = formatter.format(valorNumerico);
         }
 
-        // VERSÃO CORRIGIDA E MAIS ROBUSTA DA FUNÇÃO DE PARSING
         function parseMoedaInput(valorFormatado) {
             if (!valorFormatado) return 0;
-            // Remove tudo que não for dígito ou vírgula, depois troca a vírgula por ponto.
             const numeroString = valorFormatado.replace(/[^\d,]/g, '').replace(',', '.');
             const numero = parseFloat(numeroString);
             return isNaN(numero) ? 0 : numero;
+        }
+
+        function limparFormulario() {
+            document.getElementById('calculatorForm').reset();
+            document.getElementById('voltaAoCaixaValueContainer').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('resultsGrid').innerHTML = '';
         }
 
         function calcular() {
