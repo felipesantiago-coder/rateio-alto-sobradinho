@@ -274,7 +274,8 @@
 
                 <div class="form-group">
                     <label for="valorFinal">Valor Final do Imóvel (R$)</label>
-                    <input type="text" id="valorFinal" name="valorFinal" placeholder="R$ 0,00" required>
+                    <!-- ATRIBUTO inputmode ADICIONADO AQUI -->
+                    <input type="text" id="valorFinal" name="valorFinal" placeholder="R$ 0,00" inputmode="decimal" required>
                 </div>
 
                 <div class="form-group volta-ao-caixa-group">
@@ -295,7 +296,8 @@
                     </div>
                     <div id="voltaAoCaixaValueContainer" style="display: none;">
                         <label for="valorVoltaAoCaixa">Valor do Desconto (R$)</label>
-                        <input type="text" id="valorVoltaAoCaixa" name="valorVoltaAoCaixa" placeholder="R$ 0,00">
+                        <!-- ATRIBUTO inputmode ADICIONADO AQUI -->
+                        <input type="text" id="valorVoltaAoCaixa" name="valorVoltaAoCaixa" placeholder="R$ 0,00" inputmode="decimal">
                     </div>
                 </div>
 
