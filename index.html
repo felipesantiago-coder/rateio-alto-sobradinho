@@ -16,6 +16,8 @@
             --border-color: #e0e0e0;
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --dark-blue: #1c7ed6;
+            --success-color: #28a745;
+            --warning-color: #dc3545;
         }
 
         body {
@@ -161,6 +163,12 @@
 
         #resultsContainer {
             display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .results-grid {
@@ -176,6 +184,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
+            background: white;
         }
 
         .beneficiary-card h4 {
@@ -231,6 +240,39 @@
             padding-top: 10px;
             border-top: 1px solid var(--border-color);
         }
+
+        /* Estilos para o Comparativo */
+        .card-comparativo {
+            border: 2px solid var(--border-color);
+            background-color: #fff;
+        }
+        
+        .comparativo-result {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .diff-positive {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .diff-negative {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .diff-zero {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
     </style>
 </head>
 <body>
@@ -267,7 +309,7 @@
                     <select id="formaAquisicao" name="formaAquisicao">
                         <option value="avista">À Vista</option>
                         <option value="investidor">Tabela Investidor</option>
-                        <option value="associativo">Associativo</option>
+                        <option value="associativo">Tabela Associativa</option>
                         <option value="direta">Tabela Direta</option>
                     </select>
                 </div>
@@ -299,6 +341,12 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label for="valorComissaoContrato" style="color: var(--primary-color);">Valor Total da Comissão (Contrato) - Opcional</label>
+                    <input type="text" id="valorComissaoContrato" name="valorComissaoContrato" placeholder="R$ 0,00" inputmode="decimal">
+                    <small style="color: #666; display: block; margin-top: 5px;">Insira o valor exato da comissão do contrato para verificar a diferença.</small>
+                </div>
+
                 <div class="button-group">
                     <button type="button" class="btn-limpar" onclick="limparFormulario()">Limpar Campos</button>
                     <button type="button" class="btn-calcular" onclick="calcular()">Calcular Rateio</button>
@@ -328,8 +376,20 @@
                     <span id="totalPremioExtra">R$ 0,00</span>
                 </div>
                 <div class="summary-item total-geral">
-                    <span>Total a Distribuir:</span>
+                    <span>Total Calculado pelo Sistema:</span>
                     <span id="totalGeral">R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Card de Comparação (Aparece apenas se houver valor do contrato) -->
+            <div id="cardComparativo" class="card card-comparativo" style="display:none; margin-top: 20px;">
+                <h3>Comparativo com o Contrato</h3>
+                <div class="summary-item">
+                    <span>Valor Informado no Contrato:</span>
+                    <span id="valorContratoDisplay">R$ 0,00</span>
+                </div>
+                <div id="resultadoDiferenca" class="comparativo-result">
+                    <!-- Texto da diferença -->
                 </div>
             </div>
         </div>
@@ -350,7 +410,8 @@
                 });
             });
 
-            const moedaInputs = document.querySelectorAll('input[type="text"][id^="valor"]');
+            // Aplicar máscara de moeda em todos os inputs text de valor
+            const moedaInputs = document.querySelectorAll('input[type="text"][inputmode="decimal"]');
             moedaInputs.forEach(input => {
                 input.addEventListener('input', () => formatarMoedaInputHandler(input));
             });
@@ -385,12 +446,15 @@
             document.getElementById('voltaAoCaixaValueContainer').style.display = 'none';
             document.getElementById('resultsContainer').style.display = 'none';
             document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('cardComparativo').style.display = 'none';
         }
 
         function calcular() {
             const empreendimento = document.querySelector('input[name="empreendimento"]:checked').value;
             const formaAquisicao = document.getElementById('formaAquisicao').value;
             const valorFinal = parseMoedaInput(document.getElementById('valorFinal').value);
+            const valorComissaoContrato = parseMoedaInput(document.getElementById('valorComissaoContrato').value);
+            
             const temVoltaAoCaixa = document.querySelector('input[name="voltaAoCaixa"]:checked').value === 'sim';
 
             if (valorFinal <= 0) {
@@ -407,22 +471,27 @@
                 }
             }
             
+            // 1. Definição das Comissões (Percentuais do Valor Final)
             const comissoes = {
-                'Quadraimob Soluções Imobiliários LTDA': 0.0224,
-                'Diretor Comercial': 0.0013,
-                'Corretor': 0.0156,
-                'Gerente': 0.0057,
-                'Coordenador de Produto': 0.0050
+                'Quadraimob Soluções Imobiliários LTDA': 0.0224, // 2,24%
+                'Diretor Comercial': 0.0013,                      // 0,13%
+                'Corretor': 0.0156,                               // 1,56%
+                'Gerente': 0.0057,                                // 0,57%
+                'Coordenador de Produto': 0.0050                  // 0,5%
             };
 
-            const premioPadraoPercentual = {
-                'avista': 0.00969545,
-                'investidor': 0.00969545,
-                'associativo': 0.005150003,
-                'direta': 0
+            // 2. Definição do Prêmio Padrão (Percentuais do Valor Final)
+            // Aplicável para: À Vista, Investidor, Associativo
+            // Splits solicitados: Gerente 0,05%, Corretor 0,40%, Coordenador 0,05%
+            const premioPadraoRates = {
+                'Gerente': 0.0005,            // 0,05%
+                'Corretor': 0.0040,           // 0,40% <-- AJUSTADO DE 0,80% PARA 0,40%
+                'Coordenador de Produto': 0.0005 // 0,05%
             };
 
-            const premioDistribuicao = {
+            // 3. Definição da Distribuição do Prêmio Extra (VAC)
+            // Mantido a lógica anterior de rateio percentual do prêmio extra calculado
+            const premioExtraDistribuicao = {
                 'Corretor': 0.80,
                 'Gerente': 0.10,
                 'Coordenador de Produto': 0.10
@@ -439,20 +508,23 @@
                 resultados[beneficiario] = { comissao: 0, premioPadrao: 0, premioExtra: 0 };
             });
 
+            // --- CÁLCULO 1: COMISSÕES ---
             for (const beneficiario in comissoes) {
                 resultados[beneficiario].comissao = valorFinal * comissoes[beneficiario];
             }
 
-            const premioTotalPercentual = premioPadraoPercentual[formaAquisicao];
-            const premioTotalValor = valorFinal * premioTotalPercentual;
-            
-            for (const beneficiario in premioDistribuicao) {
-                if (resultados[beneficiario]) {
-                    resultados[beneficiario].premioPadrao = premioTotalValor * premioDistribuicao[beneficiario];
+            // --- CÁLCULO 2: PRÊMIO PADRÃO ---
+            // Regra: Vendas à vista, investidor e associativa
+            const formasComPremio = ['avista', 'investidor', 'associativo'];
+            if (formasComPremio.includes(formaAquisicao)) {
+                for (const beneficiario in premioPadraoRates) {
+                    if (resultados[beneficiario]) {
+                        resultados[beneficiario].premioPadrao = valorFinal * premioPadraoRates[beneficiario];
+                    }
                 }
             }
 
-            // --- 3. Calcular Prêmio Extra (Volta ao Caixa) - LÓGICA CORRIGIDA ---
+            // --- CÁLCULO 3: PRÊMIO EXTRA (VOLTA AO CAIXA) ---
             const limiteMax = limiteVoltaAoCaixa[empreendimento];
             let premioExtraTotal = 0;
 
@@ -468,12 +540,13 @@
             }
 
             // Distribui o prêmio extra calculado
-            for (const beneficiario in premioDistribuicao) {
+            for (const beneficiario in premioExtraDistribuicao) {
                 if (resultados[beneficiario]) {
-                    resultados[beneficiario].premioExtra = premioExtraTotal * premioDistribuicao[beneficiario];
+                    resultados[beneficiario].premioExtra = premioExtraTotal * premioExtraDistribuicao[beneficiario];
                 }
             }
             
+            // --- RENDERIZAÇÃO DOS RESULTADOS INDIVIDUAIS ---
             const resultsGrid = document.getElementById('resultsGrid');
             resultsGrid.innerHTML = '';
 
@@ -511,10 +584,41 @@
                 totais.premioExtra += resultado.premioExtra;
             }
             
+            const totalCalculadoSistema = totais.comissao + totais.premioPadrao + totais.premioExtra;
+
             document.getElementById('totalComissao').textContent = formatarMoeda(totais.comissao);
             document.getElementById('totalPremioPadrao').textContent = formatarMoeda(totais.premioPadrao);
             document.getElementById('totalPremioExtra').textContent = formatarMoeda(totais.premioExtra);
-            document.getElementById('totalGeral').textContent = formatarMoeda(totais.comissao + totais.premioPadrao + totais.premioExtra);
+            document.getElementById('totalGeral').textContent = formatarMoeda(totalCalculadoSistema);
+
+            // --- COMPARAÇÃO COM O CONTRATO ---
+            const cardComparativo = document.getElementById('cardComparativo');
+            const resultadoDiferencaDiv = document.getElementById('resultadoDiferenca');
+
+            if (valorComissaoContrato > 0) {
+                cardComparativo.style.display = 'block';
+                document.getElementById('valorContratoDisplay').textContent = formatarMoeda(valorComissaoContrato);
+                
+                const diferenca = valorComissaoContrato - totalCalculadoSistema;
+                
+                resultadoDiferencaDiv.className = 'comparativo-result'; // Reset classes
+                
+                if (Math.abs(diferenca) < 0.01) {
+                    // Diferença desprezível (iguais)
+                    resultadoDiferencaDiv.classList.add('diff-zero');
+                    resultadoDiferencaDiv.innerHTML = `Os valores correspondem exatamente.`;
+                } else if (diferenca > 0) {
+                    // A favor (contrato maior que calculado)
+                    resultadoDiferencaDiv.classList.add('diff-positive');
+                    resultadoDiferencaDiv.innerHTML = `Excedente de ${formatarMoeda(diferenca)}<br><small>O contrato paga mais do que o calculado.</small>`;
+                } else {
+                    // Em falta (contrato menor que calculado)
+                    resultadoDiferencaDiv.classList.add('diff-negative');
+                    resultadoDiferencaDiv.innerHTML = `Déficit de ${formatarMoeda(Math.abs(diferenca))}<br><small>O contrato paga menos do que o calculado.</small>`;
+                }
+            } else {
+                cardComparativo.style.display = 'none';
+            }
 
             document.getElementById('resultsContainer').style.display = 'block';
         }
